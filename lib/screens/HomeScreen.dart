@@ -258,8 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: isToday && !isPresent
                     ? Border.all(color: _gold, width: 1.5)
                     : isEditMode && !isPresent
-                    ? Border.all(color: _textMuted.withOpacity(0.4), width: 1)
-                    : null,
+                    ? Border.all(color: _textMuted.withOpacity(0.5), width: 1)
+                    : Border.all(color: _gold.withOpacity(0.2)),
               ),
               child: Stack(
                 children: [
