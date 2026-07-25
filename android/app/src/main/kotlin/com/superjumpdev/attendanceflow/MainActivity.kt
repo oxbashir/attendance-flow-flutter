@@ -1,4 +1,4 @@
-package com.example.attendance_flow
+package com.superjumpdev.attendanceflow
 
 import io.flutter.embedding.android.FlutterActivity
 

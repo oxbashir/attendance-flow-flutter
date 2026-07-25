@@ -132,7 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _prevMonth() {
     final prev = DateTime(selectedMonth.year, selectedMonth.month - 1);
     if (startMonth != null &&
-        prev.isBefore(DateTime(startMonth!.year, startMonth!.month))) return;
+        prev.isBefore(DateTime(startMonth!.year, startMonth!.month))) {
+      return;
+    }
     setState(() => selectedMonth = prev);
   }
 
