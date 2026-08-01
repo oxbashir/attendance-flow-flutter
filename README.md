@@ -1,16 +1,26 @@
-# attendance_flow
+# AttendanceFlow
 
-A new Flutter project.
+Flutter app for tracking daily attendance on a simple monthly calendar.
 
-## Getting Started
+![AttendanceFlow calendar](docs/screenshot.png)
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- Monthly calendar with tap-to-mark attendance days
+- Edit mode for bulk corrections
+- Local persistence via SharedPreferences
+- Clean light UI tuned for phones (consistent spacing, clear hierarchy)
+- Android and iOS targets
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Run
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run
+```
+
+## Stack
+
+- Flutter / Dart
+- Material Design
+- `shared_preferences` for offline storage
