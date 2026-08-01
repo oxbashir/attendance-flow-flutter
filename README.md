@@ -2,7 +2,11 @@
 
 Flutter app for tracking daily attendance on a simple monthly calendar.
 
-![AttendanceFlow calendar](docs/screenshot.png)
+<p align="center">
+  <img src="screenshots/01_calendar.png" alt="Monthly calendar with weekday attendance" width="260" />
+  <img src="screenshots/02_marked_days.png" alt="Marked attendance days across the month" width="260" />
+  <img src="screenshots/03_monthly_stats.png" alt="Monthly present days and progress" width="260" />
+</p>
 
 ## Features
 
