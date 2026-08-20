@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../theme/app_theme.dart';
+import '../theme/theme_controller.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,17 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isEditMode = false;
   bool _loaded = false;
 
-  // ── Palette ──────────────────────────────────────────────────────────────
-  static const _bg         = Color(0xFFF8F7F4);
-  static const _surface    = Color(0xFFFFFFFF);
-  static const _surfaceAlt = Color(0xFFF0EEE9);
-  static const _accent     = Color(0xFF4F7EFF);
-  static const _accentSoft = Color(0xFFEBF0FF);
-  static const _success    = Color(0xFF34C47C);
-  static const _textHigh   = Color(0xFF1A1A2E);
-  static const _textMid    = Color(0xFF6B6B80);
-  static const _textLow    = Color(0xFFB0AEBF);
-  static const _border     = Color(0xFFE8E6E1);
+  AppPalette get _p => AppPalette.of(context);
 
   final List<String> _weekDays = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -153,10 +146,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final p = _p;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (!_loaded) {
-      return const Scaffold(
-        backgroundColor: _bg,
-        body: Center(child: CircularProgressIndicator(color: _accent)),
+      return Scaffold(
+        backgroundColor: p.bg,
+        body: Center(child: CircularProgressIndicator(color: p.accent)),
       );
     }
 
@@ -164,23 +160,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final pct = _totalDays > 0 ? (_presentCount / _totalDays * 100).round() : 0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: _bg,
+        backgroundColor: p.bg,
         body: Column(
           children: [
-            _buildAppBar(),
+            _buildAppBar(p, isDark),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildMonthNav(),
-                    _buildWeekdayHeader(),
-                    _buildCalendarGrid(grid),
+                    _buildMonthNav(p),
+                    _buildWeekdayHeader(p),
+                    _buildCalendarGrid(grid, p),
                     const SizedBox(height: 12),
                   ],
                 ),
@@ -188,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SafeArea(
               top: false,
-              child: _buildFooter(pct),
+              child: _buildFooter(pct, p),
             ),
           ],
         ),
@@ -198,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── App Bar ───────────────────────────────────────────────────────────────
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(AppPalette p, bool isDark) {
+    final themeController = ThemeScope.maybeOf(context);
+
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
@@ -206,9 +204,9 @@ class _HomeScreenState extends State<HomeScreen> {
         right: 20,
         bottom: 14,
       ),
-      decoration: const BoxDecoration(
-        color: _surface,
-        border: Border(bottom: BorderSide(color: _border, width: 1)),
+      decoration: BoxDecoration(
+        color: p.surface,
+        border: Border(bottom: BorderSide(color: p.border, width: 1)),
       ),
       child: Row(
         children: [
@@ -216,46 +214,59 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: _accentSoft,
+              color: p.accentSoft,
               borderRadius: BorderRadius.circular(9),
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 CupertinoIcons.checkmark_seal_fill,
                 size: 17,
-                color: _accent,
+                color: p.accent,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          const Text(
+          Text(
             "Attendance",
             style: TextStyle(
-              color: _textHigh,
+              color: p.textHigh,
               fontSize: 16,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
             ),
           ),
           const Spacer(),
-          GestureDetector(
+          if (themeController != null) ...[
+            _IconButton(
+              palette: p,
+              active: isDark,
+              onTap: () => themeController.toggle(Theme.of(context).brightness),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) => ScaleTransition(
+                  scale: animation,
+                  child: FadeTransition(opacity: animation, child: child),
+                ),
+                child: Icon(
+                  isDark ? CupertinoIcons.sun_max_fill : CupertinoIcons.moon_fill,
+                  key: ValueKey(isDark),
+                  size: 16,
+                  color: isDark ? const Color(0xFFFFD56A) : p.textMid,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          _IconButton(
+            palette: p,
+            active: isEditMode,
             onTap: () => setState(() => isEditMode = !isEditMode),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isEditMode ? _accentSoft : _surfaceAlt,
-                borderRadius: BorderRadius.circular(10),
-                border: isEditMode
-                    ? Border.all(color: _accent.withOpacity(0.4), width: 1.5)
-                    : Border.all(color: _border),
-              ),
-              child: Icon(
-                isEditMode ? Icons.edit_rounded : Icons.edit_outlined,
-                size: 16,
-                color: isEditMode ? _accent : _textMid,
-              ),
+            child: Icon(
+              isEditMode ? Icons.edit_rounded : Icons.edit_outlined,
+              size: 16,
+              color: isEditMode ? p.accent : p.textMid,
             ),
           ),
         ],
@@ -265,37 +276,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Month Nav ─────────────────────────────────────────────────────────────
 
-  Widget _buildMonthNav() {
+  Widget _buildMonthNav(AppPalette p) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 10),
       child: Row(
         children: [
-          _NavButton(onTap: _prevMonth, icon: Icons.chevron_left_rounded),
+          _NavButton(onTap: _prevMonth, icon: Icons.chevron_left_rounded, palette: p),
           const Spacer(),
           Column(
             children: [
               Text(
                 _monthName(selectedMonth.month),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: _textHigh,
+                  color: p.textHigh,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 1),
               Text(
                 "${selectedMonth.year}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: _textMid,
+                  color: p.textMid,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
           const Spacer(),
-          _NavButton(onTap: _nextMonth, icon: Icons.chevron_right_rounded),
+          _NavButton(onTap: _nextMonth, icon: Icons.chevron_right_rounded, palette: p),
         ],
       ),
     );
@@ -303,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Weekday Header ────────────────────────────────────────────────────────
 
-  Widget _buildWeekdayHeader() {
+  Widget _buildWeekdayHeader(AppPalette p) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
@@ -312,10 +323,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Center(
             child: Text(
               d,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: _textLow,
+                color: p.textLow,
                 letterSpacing: 0.8,
               ),
             ),
@@ -328,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Calendar Grid ─────────────────────────────────────────────────────────
 
-  Widget _buildCalendarGrid(List<DateTime?> grid) {
+  Widget _buildCalendarGrid(List<DateTime?> grid, AppPalette p) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
       child: GridView.builder(
@@ -352,17 +363,17 @@ class _HomeScreenState extends State<HomeScreen> {
           Border cellBorder;
 
           if (isPresent) {
-            bgColor = _success;
-            cellBorder = Border.all(color: _success, width: 1);
+            bgColor = p.success;
+            cellBorder = Border.all(color: p.success, width: 1);
           } else if (isToday) {
-            bgColor = _accentSoft;
-            cellBorder = Border.all(color: _accent, width: 1.5);
+            bgColor = p.accentSoft;
+            cellBorder = Border.all(color: p.accent, width: 1.5);
           } else if (isEditMode) {
-            bgColor = _surface;
-            cellBorder = Border.all(color: _border, width: 1);
+            bgColor = p.surface;
+            cellBorder = Border.all(color: p.border, width: 1);
           } else {
-            bgColor = _surface;
-            cellBorder = Border.all(color: _border, width: 1);
+            bgColor = p.surface;
+            cellBorder = Border.all(color: p.border, width: 1);
           }
 
           return GestureDetector(
@@ -374,9 +385,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: cellBorder,
                 boxShadow: isPresent
-                    ? [BoxShadow(color: _success.withOpacity(0.25), blurRadius: 6, offset: const Offset(0, 2))]
+                    ? [BoxShadow(color: p.success.withValues(alpha: 0.28), blurRadius: 8, offset: const Offset(0, 2))]
                     : isToday
-                    ? [BoxShadow(color: _accent.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 2))]
+                    ? [BoxShadow(color: p.accent.withValues(alpha: 0.18), blurRadius: 8, offset: const Offset(0, 2))]
                     : null,
               ),
               child: Stack(
@@ -397,10 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: isPresent
-                            ? Colors.white.withOpacity(0.95)
+                            ? Colors.white.withValues(alpha: 0.95)
                             : isToday
-                            ? _accent
-                            : _textMid,
+                            ? p.accent
+                            : p.textMid,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -416,17 +427,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Footer ────────────────────────────────────────────────────────────────
 
-  Widget _buildFooter(int pct) {
+  Widget _buildFooter(int pct, AppPalette p) {
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 0, 14, 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: _surface,
+        color: p.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
+        border: Border.all(color: p.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: p.shadow,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -442,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 "PRESENT",
                 style: TextStyle(
                   fontSize: 10,
-                  color: _textLow,
+                  color: p.textLow,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
                 ),
@@ -450,9 +461,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 4),
               Text(
                 "$_presentCount days",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
-                  color: _textHigh,
+                  color: p.textHigh,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.8,
                 ),
@@ -466,14 +477,14 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 "$pct% this month",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: _accent,
+                  color: p.accent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
-              _MiniProgressBar(value: pct / 100),
+              _MiniProgressBar(value: pct / 100, palette: p),
             ],
           ),
         ],
@@ -484,10 +495,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // ── Supporting Widgets ────────────────────────────────────────────────────────
 
+class _IconButton extends StatelessWidget {
+  final AppPalette palette;
+  final bool active;
+  final VoidCallback onTap;
+  final Widget child;
+
+  const _IconButton({
+    required this.palette,
+    required this.active,
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: active ? palette.accentSoft : palette.surfaceAlt,
+          borderRadius: BorderRadius.circular(10),
+          border: active
+              ? Border.all(color: palette.accent.withValues(alpha: 0.4), width: 1.5)
+              : Border.all(color: palette.border),
+        ),
+        child: Center(child: child),
+      ),
+    );
+  }
+}
+
 class _NavButton extends StatelessWidget {
   final VoidCallback onTap;
   final IconData icon;
-  const _NavButton({required this.onTap, required this.icon});
+  final AppPalette palette;
+  const _NavButton({
+    required this.onTap,
+    required this.icon,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -497,18 +547,18 @@ class _NavButton extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFFFF),
+          color: palette.surface,
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(color: const Color(0xFFE8E6E1)),
+          border: Border.all(color: palette.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: palette.shadow,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Icon(icon, size: 18, color: const Color(0xFF1A1A2E)),
+        child: Icon(icon, size: 18, color: palette.textHigh),
       ),
     );
   }
@@ -516,7 +566,8 @@ class _NavButton extends StatelessWidget {
 
 class _MiniProgressBar extends StatelessWidget {
   final double value;
-  const _MiniProgressBar({required this.value});
+  final AppPalette palette;
+  const _MiniProgressBar({required this.value, required this.palette});
 
   @override
   Widget build(BuildContext context) {
@@ -527,8 +578,8 @@ class _MiniProgressBar extends StatelessWidget {
         height: 6,
         child: LinearProgressIndicator(
           value: value.clamp(0.0, 1.0),
-          backgroundColor: const Color(0xFFEBF0FF),
-          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4F7EFF)),
+          backgroundColor: palette.accentSoft,
+          valueColor: AlwaysStoppedAnimation<Color>(palette.accent),
         ),
       ),
     );

@@ -3,17 +3,16 @@
 Flutter app for tracking daily attendance on a simple monthly calendar.
 
 <p align="center">
-  <img src="screenshots/01_calendar.png" alt="Monthly calendar with weekday attendance" width="260" />
-  <img src="screenshots/02_marked_days.png" alt="Marked attendance days across the month" width="260" />
-  <img src="screenshots/03_monthly_stats.png" alt="Monthly present days and progress" width="260" />
+  <img src="store-assets/screenshots/phone/01_your_month.png" alt="Monthly calendar with weekday attendance" width="260" />
+  <img src="store-assets/screenshots/phone/03_dark_mode.png" alt="Attendance calendar in dark mode" width="260" />
 </p>
 
 ## Features
 
 - Monthly calendar with tap-to-mark attendance days
+- Light and dark themes
 - Edit mode for bulk corrections
 - Local persistence via SharedPreferences
-- Clean light UI tuned for phones (consistent spacing, clear hierarchy)
 - Android and iOS targets
 
 ## Run

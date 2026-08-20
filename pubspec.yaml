@@ -1,7 +1,7 @@
 name: attendance_flow
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.3+4
 
 environment:
   sdk: ^3.6.0
@@ -22,8 +22,19 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/launcher_icon.png"
-  adaptive_icon_background: "#1A1714"
+  adaptive_icon_background: "#6122D5"
   adaptive_icon_foreground: "assets/icon/launcher_icon.png"
+  adaptive_icon_foreground_inset: 18
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/launcher_icon.png"
+    background_color: "#6122D5"
+    theme_color: "#4F7EFF"
+  windows:
+    generate: true
+    image_path: "assets/icon/launcher_icon.png"
+    icon_size: 48
 
 flutter:
   uses-material-design: true
